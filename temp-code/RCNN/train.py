@@ -17,9 +17,11 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 0
 NUM_CLASSES = 21
 torch.manual_seed(SEED)
-img_size = (224,224)
+image_size = (224,224)
 LEARNING_RATE = 1e-3
 NUM_EPOCHS = 10
+TRAIN_CLASSIFIER = False
+TRAIN_REGRESSOR = True
 
 if not os.path.exists("checkpoints"):
 	os.mkdir("checkpoints")
@@ -66,48 +68,50 @@ test_loader = DataLoader(test_set,batch_size=BATCH_SIZE,shuffle=True,drop_last=F
 # ------------- Training Classifier -------------
 # ------------- ------------- ------------- -----
 
-for param in model.classifier.parameters():
-	param.requires_grad = True
+if TRAIN_CLASSIFIER:
+	for param in model.classifier.parameters():
+		param.requires_grad = True
 
-optimizer = optim.Adam(model.classifier.parameters(),lr=LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8)
-criterion = nn.CrossEntropyLoss()
+	optimizer = optim.Adam(model.classifier.parameters(),lr=LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8)
+	criterion = nn.CrossEntropyLoss()
 
-for epoch in range(NUM_EPOCHS):
-	train_loss = 0
-	with tqdm(train_loader, unit="batch", desc="Training", position=1, disable=False) as tepoch:
-		for i,(imgs,labels) in enumerate(tepoch):
-			imgs, labels = imgs.to(DEVICE), labels.to(DEVICE).long()
-			optimizer.zero_grad()
-			preds = model.classifier(model.features(imgs).reshape(BATCH_SIZE,-1))
-			loss = criterion(preds, labels)
-			loss.backward()
-			optimizer.step()
-			train_loss += loss.item()
-			tepoch.set_postfix(loss=train_loss/(i+1))
-	PATH = os.path.join("checkpoints/", f'classification {currentTime()} epoch-{epoch+1}.pth')
-	torch.save(model.state_dict(), PATH)
+	for epoch in range(NUM_EPOCHS):
+		train_loss = 0
+		with tqdm(train_loader, unit="batch", desc=f"Training Classifier Epoch {epoch+1}", position=1, disable=False) as tepoch:
+			for i,(imgs,labels) in enumerate(tepoch):
+				imgs, labels = imgs.to(DEVICE), labels[:,0].to(DEVICE).long()
+				optimizer.zero_grad()
+				preds = model.classifier(model.features(imgs).reshape(BATCH_SIZE,-1))
+				loss = criterion(preds, labels)
+				loss.backward()
+				optimizer.step()
+				train_loss += loss.item()
+				tepoch.set_postfix(loss=train_loss/(i+1))
+		PATH = os.path.join("checkpoints/", f'classification {currentTime()} epoch-{epoch+1}.pth')
+		torch.save(model.state_dict(), PATH)
 
 # ------------- ------------- ------------- ----
 # ------------- Training Regressor -------------
 # ------------- ------------- ------------- ----
 
-# for param in model.regressor.parameters():
-# 	param.requires_grad = True
+if TRAIN_REGRESSOR: 
+	for param in model.regressor.parameters():
+		param.requires_grad = True
 
-# optimizer = optim.Adam(model.regressor.parameters(),lr=LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8)
-# criterion = nn.MSELoss()
+	optimizer = optim.Adam(model.regressor.parameters(),lr=LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8)
+	criterion = nn.MSELoss()
 
-# for epoch in range(NUM_EPOCHS):
-# 	train_loss = 0
-# 	with tqdm(train_loader, unit="batch", desc="Training", position=1, disable=False) as tepoch:
-# 		for i,(imgs,labels) in enumerate(tepoch):
-# 			imgs, labels = imgs.to(DEVICE), labels.to(DEVICE)
-# 			optimizer.zero_grad()
-# 			preds = model.classifier(model.features(imgs).reshape(BATCH_SIZE,-1))
-# 			loss = criterion(preds, labels)
-# 			loss.backward()
-# 			optimizer.step()
-# 			train_loss += loss.item()
-# 			tepoch.set_postfix(loss=train_loss/(i+1))
-# 	PATH = os.path.join("checkpoints/", f'classification {currentTime()} epoch-{epoch+1}.pth')
-# 	torch.save(model.state_dict(), PATH)
+	for epoch in range(NUM_EPOCHS):
+		train_loss = 0
+		with tqdm(train_loader, unit="batch", desc=f"Training Regressor Epoch {epoch+1}", position=1, disable=False) as tepoch:
+			for i,(imgs,labels) in enumerate(tepoch):
+				imgs, labels = imgs.to(DEVICE), labels[:,1:].to(DEVICE).type(torch.float32)
+				optimizer.zero_grad()
+				preds = model.regressor(model.features(imgs).reshape(BATCH_SIZE,-1))
+				loss = criterion(preds, labels)
+				loss.backward()
+				optimizer.step()
+				train_loss += loss.item()
+				tepoch.set_postfix(loss=train_loss/(i+1))
+		PATH = os.path.join("checkpoints/", f'regression {currentTime()} epoch-{epoch+1}.pth')
+		torch.save(model.state_dict(), PATH)

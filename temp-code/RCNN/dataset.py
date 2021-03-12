@@ -11,9 +11,12 @@ def prepare_image(t):
 	return torch.from_numpy(t)
 
 class MyCustomDataset(Dataset):
-	def __init__(self, data_dir, split="train", test_ratio=0.15):
+	def __init__(self, data_dir, split="train", test_ratio=0.15, shuffle=True, seed=0):
 		self.data_dir = data_dir
 		img_list = os.listdir(data_dir)
+		np.random.seed(seed)
+		if shuffle:
+			np.random.shuffle(img_list)
 		cut_point = int(len(img_list)*(1-test_ratio))
 		if split == "train":
 			self.img_list = img_list[:cut_point]

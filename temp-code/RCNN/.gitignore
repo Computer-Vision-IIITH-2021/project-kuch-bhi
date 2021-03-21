@@ -1,2 +1,4 @@
 __pycache__/
 checkpoints/
+.ipynb_checkpoints/
+.virtual_documents/

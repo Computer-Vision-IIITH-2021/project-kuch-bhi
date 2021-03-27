@@ -24,9 +24,9 @@ def IoU(bbox1, bbox2, return_coords=False):
 	return intersection_area/union_area
 
 def main():
-	images_path = "../../../VOC2012/JPEGImages"
-	annots_path = "../../../VOC2012/Annotations"
-	out_path = "../../../training_data"
+	images_path = "D:/VOCdevkit/VOC2012/JPEGImages"
+	annots_path = "D:/VOCdevkit/VOC2012/Annotations"
+	out_path = "D:/VOCdevkit/VOC2012/training_data"
 	if not os.path.exists(out_path):
 		os.mkdir(out_path)
 

@@ -10,7 +10,7 @@ from datetime import datetime
 import os
 currentTime = lambda : datetime.now().strftime("%d-%m-%Y %H-%M-%S")
 
-DATA_PATH = '../../../training_data'
+DATA_PATH = 'D:/VOCdevkit/training_data'
 BATCH_SIZE = 4
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 0
@@ -18,14 +18,15 @@ NUM_CLASSES = 21
 torch.manual_seed(SEED)
 image_size = (224,224)
 LEARNING_RATE = 1e-4
-NUM_EPOCHS = 2
+NUM_EPOCHS = 8
 ITERS_TO_TEST = 50
 TRAIN_CLASSIFIER = False
 TRAIN_REGRESSOR = True
-CHECKPOINT = 'checkpoints/classification 12-03-2021 22-31-17 epoch-2.pth'
+CHECKPOINT = 'D:/VOCdevkit/checkpoints/classifier/classification 27-03-2021 14-24-37 epoch-8.pth'
+# CHECKPOINT = None
 
-if not os.path.exists("checkpoints"):
-	os.mkdir("checkpoints")
+if not os.path.exists("D:/VOCdevkit/checkpoints"):
+	os.mkdir("D:/VOCdevkit/checkpoints")
 
 model = initialize_model(NUM_CLASSES)
 
@@ -56,6 +57,7 @@ if TRAIN_CLASSIFIER:
 	criterion = nn.CrossEntropyLoss()
 
 	if CHECKPOINT is not None:
+		print('using old checkpoint')
 		model, optimizer, _ = load_model(model, CHECKPOINT, classifier_optimizer=optimizer)
 
 	iters = 0
@@ -91,7 +93,7 @@ if TRAIN_CLASSIFIER:
 								num_total_test += len(labels)
 								valepoch.set_postfix(loss=test_loss/(j+1), acc=num_correct_test/num_total_test)
 
-		PATH = os.path.join("checkpoints/", f'classification {currentTime()} epoch-{epoch+1}.pth')
+		PATH = os.path.join("D:/VOCdevkit/checkpoints/classifier/", f'classification {currentTime()} epoch-{epoch+1}.pth')
 		# torch.save(model.state_dict(), PATH)
 		save_model(model, PATH, classifier_optimizer=optimizer)
 
@@ -111,6 +113,7 @@ if TRAIN_REGRESSOR:
 	criterion = nn.MSELoss()
 
 	if CHECKPOINT is not None:
+		print('using old checkpoint')
 		model, _, optimizer = load_model(model, CHECKPOINT, regressor_optimizer=optimizer)
 
 	iters = 0
@@ -138,6 +141,6 @@ if TRAIN_REGRESSOR:
 								test_loss += loss.item()
 								valepoch.set_postfix(loss=test_loss/(j+1))
 
-		PATH = os.path.join("checkpoints/", f'regression {currentTime()} epoch-{epoch+1}.pth')
+		PATH = os.path.join("D:/VOCdevkit/checkpoints/regressor/", f'regression {currentTime()} epoch-{epoch+1}.pth')
 		# torch.save(model.state_dict(), PATH)
 		save_model(model, PATH, regressor_optimizer=optimizer)

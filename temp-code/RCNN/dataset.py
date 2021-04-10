@@ -27,7 +27,7 @@ class MyCustomDataset(Dataset):
 		filename = self.img_list[index]
 		label = list(map(int, filename.split('_')[:-1]))
 		label = torch.tensor(label)
-		label[1:] /= 1000
+		label[1:] = (label[1:]/1000).long()
 		img_path = os.path.join(self.data_dir, filename)
 		img = cv2.imread(img_path, cv2.IMREAD_COLOR)
 		input_img = prepare_image(img)

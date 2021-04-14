@@ -17,15 +17,15 @@ BATCH_SIZE = 4
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 0
 NUM_CLASSES = 21
-MODEL_NAME = 'mobilenet_v2'
+MODEL_NAME = 'vgg16'
 torch.manual_seed(SEED)
 image_size = (224,224)
 LEARNING_RATE = 1e-4
 NUM_EPOCHS = 2
 ITERS_TO_TEST = 50
 MAX_STOP_COUNT = 3
-TRAIN_CLASSIFIER = False
-TRAIN_REGRESSOR = True
+TRAIN_CLASSIFIER = True
+TRAIN_REGRESSOR = False
 # CHECKPOINT = 'checkpoints/classification 12-03-2021 22-31-17 epoch-2.pth'
 CHECKPOINT = None
 
@@ -46,7 +46,7 @@ test_loader = DataLoader(test_set,batch_size=BATCH_SIZE,shuffle=True,drop_last=F
 def batch_to_rois(batch, mode='classfication'):
 	imgs, labels = batch
 	imgs = imgs.to(DEVICE)
-	roi_batch, indices = roi_pooling(model.features[:17](imgs), labels[:,:,:4])
+	roi_batch, indices = roi_pooling(model.features(imgs), labels[:,:,:4])
 	roi_batch = roi_batch.to(DEVICE)
 	b,n = labels.shape[:2]
 	if mode=='classfication':

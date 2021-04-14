@@ -53,7 +53,7 @@ def main():
 	annots_path = "../../../VOC2012/Annotations"
 	out_path = "../../../training_rois.json"
 
-	NUM_IMAGES = 100
+	NUM_IMAGES = 10
 	LIMIT_CLASS_IMAGES = 5
 
 	class_list = ['background','person','bird','cat','cow','dog','horse','sheep','aeroplane','bicycle','boat','bus','car','motorbike','train','bottle','chair','diningtable','pottedplant','sofa','tvmonitor']
@@ -66,32 +66,35 @@ def main():
 	class_count = np.zeros((NUM_CLASSES), dtype='int')
 	total_class_count = class_count.copy()
 	for filename in tqdm(os.listdir(images_path)[:NUM_IMAGES]):
-		xml_filepath = os.path.join(annots_path, filename.split('.')[0] + '.xml') 
-		image_filepath = os.path.join(images_path, filename)
-		class_count *= 0
+		try:
+			xml_filepath = os.path.join(annots_path, filename.split('.')[0] + '.xml') 
+			image_filepath = os.path.join(images_path, filename)
+			class_count *= 0
 
-		classnames, boxes = parseXML(xml_filepath)
-		image = cv2.imread(image_filepath, cv2.IMREAD_COLOR)
+			classnames, boxes = parseXML(xml_filepath)
+			image = cv2.imread(image_filepath, cv2.IMREAD_COLOR)
 
-		for bbox in find_region_proposals(image):
-			x1,y1,x2,y2 = bbox
-			max_iou = 0
-			for classname, box in zip(classnames, boxes):
-				class_index = class_index_mapping[classname]
-				iou, coords = IoU(bbox,box,return_coords=True)
-				coords = (np.array(coords) - np.array([x1,y1,x1,y1])) / np.array([x2-x1,y2-y1,x2-x1,y2-y1])
-				coords = (np.round(coords,3)*1000).astype('int')
+			for bbox in find_region_proposals(image):
+				x1,y1,x2,y2 = bbox
+				max_iou = 0
+				for classname, box in zip(classnames, boxes):
+					class_index = class_index_mapping[classname]
+					iou, coords = IoU(bbox,box,return_coords=True)
+					coords = (np.array(coords) - np.array([x1,y1,x1,y1])) / np.array([x2-x1,y2-y1,x2-x1,y2-y1])
+					coords = (np.round(coords,3)*1000).astype('int')
+					
+					max_iou = max(max_iou,iou)
+					if iou > 0.8 and class_count[class_index]<LIMIT_CLASS_IMAGES:
+						box_write(filename, bbox, class_index, coords, image.shape[:2])
+						class_count[class_index] += 1
+						total_class_count[class_index] += 1
 				
-				max_iou = max(max_iou,iou)
-				if iou > 0.8 and class_count[class_index]<LIMIT_CLASS_IMAGES:
-					box_write(filename, bbox, class_index, coords, image.shape[:2])
-					class_count[class_index] += 1
-					total_class_count[class_index] += 1
-			
-			if max_iou < 0.3 and class_count[0]<LIMIT_CLASS_IMAGES:
-				box_write(filename, bbox, 0, (0,0,1000,1000), image.shape[:2])
-				class_count[0] += 1
-				total_class_count[0] += 1
+				if max_iou < 0.3 and class_count[0]<LIMIT_CLASS_IMAGES:
+					box_write(filename, bbox, 0, (0,0,1000,1000), image.shape[:2])
+					class_count[0] += 1
+					total_class_count[0] += 1
+		except Exception as e:
+			print(f"#>#> Error occured in {filename}:\n{e}\n")
 	save_rois(out_path)
 
 if __name__=="__main__":

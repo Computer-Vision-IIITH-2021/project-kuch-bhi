@@ -11,6 +11,7 @@ class Identity(nn.Module):
 def initialize_model(NUM_CLASSES):
 	model = models.vgg16(pretrained=True)
 
+	# input size = 512x7x7, n=num_anchors=9
 	n = 9
 	model.rpn = nn.Sequential(
 		nn.Conv2d(in_channels=512, out_channels=256, kernel_size=3, padding=1),

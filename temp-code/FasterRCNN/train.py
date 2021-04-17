@@ -95,9 +95,13 @@ if TRAIN_CLASSIFIER:
 		# torch.save(model.state_dict(), PATH)
 		save_model(model, PATH, classifier_optimizer=optimizer)
 
+
+
 # ------------- ------------- ------------- ----
 # ------------- Training Regressor -------------
 # ------------- ------------- ------------- ----
+
+
 
 for param in model.parameters():
 	param.requires_grad = False
@@ -139,5 +143,4 @@ if TRAIN_REGRESSOR:
 								valepoch.set_postfix(loss=test_loss/(j+1))
 
 		PATH = os.path.join("checkpoints/", f'regression {currentTime()} epoch-{epoch+1}.pth')
-		# torch.save(model.state_dict(), PATH)
 		save_model(model, PATH, regressor_optimizer=optimizer)

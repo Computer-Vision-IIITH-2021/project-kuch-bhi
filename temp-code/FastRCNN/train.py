@@ -12,22 +12,22 @@ from roi_pooling import roi_pooling
 currentTime = lambda : datetime.now().strftime("%d-%m-%Y %H-%M-%S")
 
 torch.cuda.empty_cache()
-DATA_PATH = 'D:/VOCdevkit/VOC2012/JPEGImages/'
-BATCH_SIZE = 32
+DATA_PATH = '../../../VOC2012/JPEGImages'
+BATCH_SIZE = 4
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 SEED = 0
 NUM_CLASSES = 21
-MODEL_NAME = 'mobilenet_v2'
+MODEL_NAME = 'vgg16'
 torch.manual_seed(SEED)
 image_size = (224,224)
 LEARNING_RATE = 1e-4
-NUM_EPOCHS = 25
+NUM_EPOCHS = 2
 ITERS_TO_TEST = 50
 MAX_STOP_COUNT = 3
-TRAIN_CLASSIFIER = False
-TRAIN_REGRESSOR = True
-CHECKPOINT = 'D:/VOCdevkit/checkpoints/Classifier/classification 21-04-2021 00-14-22 epoch-4.pth'
-# CHECKPOINT = None
+TRAIN_CLASSIFIER = True
+TRAIN_REGRESSOR = False
+# CHECKPOINT = 'checkpoints/classification 12-03-2021 22-31-17 epoch-2.pth'
+CHECKPOINT = None
 
 if not os.path.exists("checkpoints"):
 	os.mkdir("checkpoints")
@@ -109,7 +109,7 @@ if TRAIN_CLASSIFIER:
 					num_total_test += len(labels)
 					valepoch.set_postfix(loss=test_loss/(j+1), acc=num_correct_test/num_total_test)
 		if test_loss < min_test_loss:
-			PATH = os.path.join("D:/VOCdevkit/checkpoints/Classifier//", f'classification {currentTime()} epoch-{epoch+1}.pth')
+			PATH = os.path.join("checkpoints/", f'classification {currentTime()} epoch-{epoch+1}.pth')
 			save_model(model, PATH, classifier_optimizer=optimizer)
 			min_test_loss = test_loss
 		else:
@@ -161,7 +161,7 @@ if TRAIN_REGRESSOR:
 					test_loss += loss.item()
 					valepoch.set_postfix(loss=test_loss/(j+1))
 		if test_loss < min_test_loss:
-			PATH = os.path.join("D:/VOCdevkit/checkpoints/regressor/", f'regression {currentTime()} epoch-{epoch+1}.pth')
+			PATH = os.path.join("checkpoints/", f'regression {currentTime()} epoch-{epoch+1}.pth')
 			save_model(model, PATH, regressor_optimizer=optimizer)
 			min_test_loss = test_loss
 		else:

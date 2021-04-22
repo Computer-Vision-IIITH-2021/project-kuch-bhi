@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 import torchvision
 from tqdm import tqdm
 
-MODEL_NAME = 'vgg16'
+MODEL_NAME = 'mobilenet_v2'
 NUM_CLASSES = 21
 image_size = (224,224)
-MODEL_PATH = './checkpoints/classification 14-04-2021 19-40-43 epoch-2.pth'
+MODEL_PATH = 'D:/VOCdevkit/checkpoints/regressor/regression 21-04-2021 00-32-04 epoch-7.pth'
 model = Network(MODEL_NAME, NUM_CLASSES)
 model, _, _ = load_model(model, MODEL_PATH)
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -82,16 +82,17 @@ def predict(image, batch_size=16, nms_iou_threshold=0.7):
 
 	final_boxes = []
 	class_preds = all_class_probs.argmax(axis=1)
+	class_probs_max = all_class_probs.max(axis=1)
 
-	boxes_to_keep = torchvision.ops.boxes.batched_nms(all_box_preds.type(torch.float32), all_class_probs, class_preds, nms_iou_threshold)
+	boxes_to_keep = torchvision.ops.boxes.batched_nms(all_box_preds.type(torch.float32), class_probs_max[0], class_preds, nms_iou_threshold)
 	final_boxes = torch_hstack([class_preds[boxes_to_keep].reshape(-1,1),all_box_preds[boxes_to_keep]])
 	return final_boxes.detach().cpu().numpy()
 
 def main():
-	image_path = r"C:\Users\trizo\Downloads\Documents\Sem6\CV\Project\VOC2012\JPEGImages\2007_000027.jpg"
+	image_path = r"D:\VOCdevkit\VOC2012\JPEGImages\2007_000549.jpg"
 	image = cv2.imread(image_path, cv2.IMREAD_COLOR)
 	boxes = predict(image)
-	predicted = cv2.cvtColor(draw_boxes(image, boxes), cv2.COLOR_BGR2RGB)
+	predicted = cv2.cvtColor(draw_boxes(image, boxes[np.where(boxes[:,0]!=0)]), cv2.COLOR_BGR2RGB)
 	plt.axis('off')
 	plt.imshow(predicted)
 	plt.show()

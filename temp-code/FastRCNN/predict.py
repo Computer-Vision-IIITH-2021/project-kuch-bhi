@@ -36,6 +36,8 @@ def draw_boxes(image, boxes):
 	new_image = image.copy()
 	for box in boxes:
 		class_ind = int(box[0])
+		if class_ind==0:
+			continue
 		x1,y1,x2,y2 = tuple(map(int, box[1:]))
 		new_image = cv2.rectangle(new_image, (x1,y1), (x2,y2), (255,0,0), 3)
 		cv2.putText(new_image, class_list[class_ind], (x1,y1), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,0,0), 2)
@@ -83,7 +85,7 @@ def predict(image, batch_size=16, nms_iou_threshold=0.7):
 	final_boxes = []
 	class_preds = all_class_probs.argmax(axis=1)
 
-	boxes_to_keep = torchvision.ops.boxes.batched_nms(all_box_preds.type(torch.float32), all_class_probs, class_preds, nms_iou_threshold)
+	boxes_to_keep = torchvision.ops.boxes.batched_nms(all_box_preds.type(torch.float32), all_class_probs.max(axis=1), class_preds, nms_iou_threshold)
 	final_boxes = torch_hstack([class_preds[boxes_to_keep].reshape(-1,1),all_box_preds[boxes_to_keep]])
 	return final_boxes.detach().cpu().numpy()
 

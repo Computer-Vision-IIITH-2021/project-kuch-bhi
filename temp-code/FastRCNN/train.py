@@ -110,7 +110,7 @@ if TRAIN_CLASSIFIER:
 					valepoch.set_postfix(loss=test_loss/(j+1), acc=num_correct_test/num_total_test)
 		if test_loss < min_test_loss:
 			PATH = os.path.join("checkpoints/", f'classification {currentTime()} epoch-{epoch+1}.pth')
-			save_model(model, PATH, regressor_optimizer=optimizer)
+			save_model(model, PATH, classifier_optimizer=optimizer)
 			min_test_loss = test_loss
 		else:
 			stop_count+=1
